@@ -18,14 +18,57 @@ public class EmailService {
     }
 
     public void sendOrderConfirmation(Order order) {
-        System.out.println("sendOrderConfirmation() triggered");
+        sendStyledEmail(
+                order,
+                "Your LuxeGlow Order #" + order.getId() + " is Confirmed",
+                "Order Confirmation",
+                "Thank you for shopping with <strong>LuxeGlow Jewelry</strong>. Your order has been placed successfully."
+        );
+    }
+
+    public void sendOrderStatusUpdate(Order order) {
+        String subject = "Your LuxeGlow Order #" + order.getId() + " is now " + order.getStatus();
+        String heading = "Order Status Update";
+        String message = buildStatusMessage(order.getStatus());
+
+        sendStyledEmail(order, subject, heading, message);
+    }
+
+    private String buildStatusMessage(String status) {
+        if (status == null) {
+            return "Your order status has been updated.";
+        }
+
+        return switch (status.trim().toLowerCase()) {
+            case "confirmed" ->
+                    "Good news! Your order has been <strong>confirmed</strong> and is now being prepared.";
+
+            case "shipped" ->
+                    "Great news! Your order has been <strong>shipped</strong> and is on the way.";
+
+            case "out for delivery" ->
+                    "Your order is <strong>out for delivery</strong> and will reach you soon. Please be available to receive it.";
+
+            case "delivered" ->
+                    "Your order has been <strong>delivered</strong>. We hope you love your purchase.";
+
+            case "cancelled" ->
+                    "Your order has been <strong>cancelled</strong>. If this was unexpected, please contact support.";
+
+            default ->
+                    "Your order status has been updated to <strong>" + status + "</strong>.";
+        };
+    }
+
+    private void sendStyledEmail(Order order, String subject, String heading, String mainMessage) {
+        System.out.println("sendStyledEmail() triggered for: " + order.getEmail());
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(order.getEmail());
-            helper.setSubject("Your LuxeGlow Order #" + order.getId() + " is Confirmed");
+            helper.setSubject(subject);
 
             StringBuilder itemsHtml = new StringBuilder();
             if (order.getItems() != null && !order.getItems().isEmpty()) {
@@ -48,18 +91,23 @@ public class EmailService {
                     ? order.getAddress().replace("\n", "<br>")
                     : "Not provided";
 
+            String customerName = order.getCustomerName() != null ? order.getCustomerName() : "Customer";
+            String orderStatus = order.getStatus() != null ? order.getStatus() : "Updated";
+            double totalAmount = order.getTotalAmount() != null ? order.getTotalAmount() : 0.0;
+
             String html = """
                 <div style="font-family:Arial, sans-serif; background:#f8f8f8; padding:30px;">
                     <div style="max-width:700px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
+                        
                         <div style="background:#111111; color:#ffffff; padding:24px; text-align:center;">
                             <h1 style="margin:0; font-size:28px;">LuxeGlow Jewelry</h1>
-                            <p style="margin:8px 0 0; font-size:14px; color:#dddddd;">Order Confirmation</p>
+                            <p style="margin:8px 0 0; font-size:14px; color:#dddddd;">%s</p>
                         </div>
 
                         <div style="padding:30px;">
                             <p style="font-size:16px; margin:0 0 16px;">Hi %s,</p>
-                            <p style="font-size:15px; color:#444;">
-                                Thank you for shopping with <strong>LuxeGlow Jewelry</strong>. Your order has been placed successfully.
+                            <p style="font-size:15px; color:#444; line-height:1.7;">
+                                %s
                             </p>
 
                             <div style="margin:24px 0; padding:18px; background:#fafafa; border:1px solid #eee; border-radius:10px;">
@@ -87,10 +135,6 @@ public class EmailService {
                                 %s
                             </div>
 
-                            <p style="margin-top:24px; color:#555; font-size:14px;">
-                                We will notify you once your order is shipped.
-                            </p>
-
                             <p style="margin-top:24px; font-size:15px;">
                                 Thanks,<br>
                                 <strong>LuxeGlow Jewelry</strong>
@@ -99,10 +143,12 @@ public class EmailService {
                     </div>
                 </div>
             """.formatted(
-                    order.getCustomerName(),
+                    heading,
+                    customerName,
+                    mainMessage,
                     order.getId(),
-                    order.getStatus(),
-                    order.getTotalAmount(),
+                    orderStatus,
+                    totalAmount,
                     itemsHtml.toString(),
                     addressHtml
             );
@@ -110,7 +156,7 @@ public class EmailService {
             helper.setText(html, true);
             mailSender.send(message);
 
-            System.out.println("HTML order confirmation email sent to: " + order.getEmail());
+            System.out.println("Email sent successfully to: " + order.getEmail());
 
         } catch (MessagingException e) {
             System.out.println("MessagingException while sending email: " + e.getMessage());

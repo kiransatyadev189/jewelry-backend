@@ -10,9 +10,19 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class OrderService {
+
+    private static final Set<String> ALLOWED_STATUSES = Set.of(
+            "Pending",
+            "Confirmed",
+            "Shipped",
+            "Out for Delivery",
+            "Delivered",
+            "Cancelled"
+    );
 
     private final OrderRepository orderRepository;
     private final EmailService emailService;
@@ -46,13 +56,12 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
         System.out.println("Order saved with id: " + savedOrder.getId());
-        System.out.println("Trying to send email to: " + savedOrder.getEmail());
 
         try {
             emailService.sendOrderConfirmation(savedOrder);
             System.out.println("Order confirmation email sent to: " + savedOrder.getEmail());
         } catch (Exception e) {
-            System.out.println("Failed to send email: " + e.getMessage());
+            System.out.println("Failed to send confirmation email: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -66,16 +75,34 @@ public class OrderService {
     public Order updateOrderStatus(Long id, String status) {
         Optional<Order> optionalOrder = orderRepository.findById(id);
 
-        if (optionalOrder.isPresent()) {
-            Order order = optionalOrder.get();
-            order.setStatus(status);
-
-            Order updatedOrder = orderRepository.save(order);
-            System.out.println("Order status updated for id: " + updatedOrder.getId() + " to " + updatedOrder.getStatus());
-
-            return updatedOrder;
-        } else {
+        if (optionalOrder.isEmpty()) {
             throw new RuntimeException("Order not found with id: " + id);
         }
+
+        if (status == null || status.isBlank()) {
+            throw new RuntimeException("Order status cannot be empty");
+        }
+
+        String normalizedStatus = status.trim();
+
+        if (!ALLOWED_STATUSES.contains(normalizedStatus)) {
+            throw new RuntimeException("Invalid order status: " + normalizedStatus);
+        }
+
+        Order order = optionalOrder.get();
+        order.setStatus(normalizedStatus);
+
+        Order updatedOrder = orderRepository.save(order);
+        System.out.println("Order status updated for id: " + updatedOrder.getId() + " to " + updatedOrder.getStatus());
+
+        try {
+            emailService.sendOrderStatusUpdate(updatedOrder);
+            System.out.println("Status update email sent to: " + updatedOrder.getEmail());
+        } catch (Exception e) {
+            System.out.println("Failed to send status update email: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return updatedOrder;
     }
 }
