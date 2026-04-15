@@ -16,12 +16,16 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final EmailService emailService;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, EmailService emailService) {
         this.orderRepository = orderRepository;
+        this.emailService = emailService;
     }
 
     public Order placeOrder(OrderRequest request) {
+        System.out.println("ORDER METHOD HIT");
+
         Order order = new Order();
         order.setCustomerName(request.getCustomerName());
         order.setEmail(request.getEmail());
@@ -42,7 +46,17 @@ public class OrderService {
             }
         }
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        System.out.println("Calling email service for order: " + savedOrder.getId());
+
+        emailService.sendOrderConfirmation(
+                savedOrder.getEmail(),
+                savedOrder.getCustomerName(),
+                savedOrder.getId(),
+                savedOrder.getTotalAmount()
+        );
+
+        return savedOrder;
     }
 
     public List<Order> getAllOrders() {
