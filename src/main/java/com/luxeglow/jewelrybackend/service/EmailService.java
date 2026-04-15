@@ -18,6 +18,8 @@ public class EmailService {
     }
 
     public void sendOrderConfirmation(Order order) {
+        System.out.println("sendOrderConfirmation() triggered");
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -42,10 +44,13 @@ public class EmailService {
                 }
             }
 
+            String addressHtml = order.getAddress() != null
+                    ? order.getAddress().replace("\n", "<br>")
+                    : "Not provided";
+
             String html = """
                 <div style="font-family:Arial, sans-serif; background:#f8f8f8; padding:30px;">
                     <div style="max-width:700px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
-                        
                         <div style="background:#111111; color:#ffffff; padding:24px; text-align:center;">
                             <h1 style="margin:0; font-size:28px;">LuxeGlow Jewelry</h1>
                             <p style="margin:8px 0 0; font-size:14px; color:#dddddd;">Order Confirmation</p>
@@ -64,7 +69,7 @@ public class EmailService {
                             </div>
 
                             <h3 style="margin:24px 0 12px; color:#222;">Items Ordered</h3>
-                            <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                            <table style="width:100%%; border-collapse:collapse; font-size:14px;">
                                 <thead>
                                     <tr style="background:#f3f3f3;">
                                         <th style="padding:10px; border:1px solid #eee; text-align:left;">Product</th>
@@ -99,7 +104,7 @@ public class EmailService {
                     order.getStatus(),
                     order.getTotalAmount(),
                     itemsHtml.toString(),
-                    order.getAddress().replace("\n", "<br>")
+                    addressHtml
             );
 
             helper.setText(html, true);
@@ -108,7 +113,11 @@ public class EmailService {
             System.out.println("HTML order confirmation email sent to: " + order.getEmail());
 
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
+            System.out.println("MessagingException while sending email: " + e.getMessage());
+            throw new RuntimeException("Failed to send email", e);
+        } catch (Exception e) {
+            System.out.println("General email error: " + e.getMessage());
+            throw new RuntimeException("Failed to send email", e);
         }
     }
 }

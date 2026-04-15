@@ -23,6 +23,8 @@ public class OrderService {
     }
 
     public Order placeOrder(OrderRequest request) {
+        System.out.println("placeOrder() started");
+
         Order order = new Order();
         order.setCustomerName(request.getCustomerName());
         order.setEmail(request.getEmail());
@@ -43,6 +45,8 @@ public class OrderService {
         }
 
         Order savedOrder = orderRepository.save(order);
+        System.out.println("Order saved with id: " + savedOrder.getId());
+        System.out.println("Trying to send email to: " + savedOrder.getEmail());
 
         try {
             emailService.sendOrderConfirmation(savedOrder);
@@ -67,14 +71,7 @@ public class OrderService {
             order.setStatus(status);
 
             Order updatedOrder = orderRepository.save(order);
-
-            try {
-                emailService.sendOrderConfirmation(updatedOrder);
-                System.out.println("Status update email sent to: " + updatedOrder.getEmail());
-            } catch (Exception e) {
-                System.out.println("Failed to send status update email: " + e.getMessage());
-                e.printStackTrace();
-            }
+            System.out.println("Order status updated for id: " + updatedOrder.getId() + " to " + updatedOrder.getStatus());
 
             return updatedOrder;
         } else {
