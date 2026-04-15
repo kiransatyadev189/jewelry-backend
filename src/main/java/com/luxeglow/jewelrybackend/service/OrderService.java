@@ -8,6 +8,8 @@ import com.luxeglow.jewelrybackend.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -51,5 +53,32 @@ public class OrderService {
         }
 
         return savedOrder;
+    }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    public Order updateOrderStatus(Long id, String status) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+
+        if (optionalOrder.isPresent()) {
+            Order order = optionalOrder.get();
+            order.setStatus(status);
+
+            Order updatedOrder = orderRepository.save(order);
+
+            try {
+                emailService.sendOrderConfirmation(updatedOrder);
+                System.out.println("Status update email sent to: " + updatedOrder.getEmail());
+            } catch (Exception e) {
+                System.out.println("Failed to send status update email: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+            return updatedOrder;
+        } else {
+            throw new RuntimeException("Order not found with id: " + id);
+        }
     }
 }
