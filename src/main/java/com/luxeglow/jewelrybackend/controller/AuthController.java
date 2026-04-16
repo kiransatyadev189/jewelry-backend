@@ -1,6 +1,10 @@
 package com.luxeglow.jewelrybackend.controller;
 
-import com.luxeglow.jewelrybackend.dto.*;
+import com.luxeglow.jewelrybackend.dto.AuthResponse;
+import com.luxeglow.jewelrybackend.dto.ForgotPasswordRequest;
+import com.luxeglow.jewelrybackend.dto.ResetPasswordRequest;
+import com.luxeglow.jewelrybackend.dto.UserLoginRequest;
+import com.luxeglow.jewelrybackend.dto.UserSignupRequest;
 import com.luxeglow.jewelrybackend.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +25,22 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody UserSignupRequest request) {
-        return ResponseEntity.ok(authService.signup(request));
+        try {
+            String response = authService.signup(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+        try {
+            AuthResponse response = authService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/forgot-password")
@@ -36,7 +50,12 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Email is required");
         }
 
-        return ResponseEntity.ok(authService.forgotPassword(request.getEmail()));
+        try {
+            String response = authService.forgotPassword(request.getEmail());
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/reset-password")
@@ -46,8 +65,18 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Token is required");
         }
 
-        return ResponseEntity.ok(
-                authService.resetPassword(request.getToken(), request.getNewPassword())
-        );
+        if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("New password is required");
+        }
+
+        try {
+            String response = authService.resetPassword(
+                    request.getToken(),
+                    request.getNewPassword()
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
