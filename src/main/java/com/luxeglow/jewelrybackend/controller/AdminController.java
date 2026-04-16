@@ -2,13 +2,18 @@ package com.luxeglow.jewelrybackend.controller;
 
 import com.luxeglow.jewelrybackend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://fashion-jewelry-store-frontend.vercel.app"
+})
 public class AdminController {
 
     @Value("${admin.username}")
@@ -28,19 +33,21 @@ public class AdminController {
         String username = req.get("username");
         String password = req.get("password");
 
+        if (username == null || password == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username and password are required");
+        }
+
         if (adminUsername.equals(username) && adminPassword.equals(password)) {
-            String token = jwtUtil.generateToken(username);
+            String token = jwtUtil.generateToken(username, "ROLE_ADMIN");
 
             return Map.of(
                     "success", true,
                     "token", token,
+                    "role", "ROLE_ADMIN",
                     "message", "Login successful"
             );
         }
 
-        return Map.of(
-                "success", false,
-                "message", "Invalid username or password"
-        );
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
     }
 }
