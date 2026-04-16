@@ -42,4 +42,9 @@ public class OrderController {
 
         return orderService.updateOrderStatus(id, status);
     }
+
+    @GetMapping("/track")
+    public Order trackOrder(@RequestParam Long id, @RequestParam String email) {
+        return orderService.trackOrder(id, email);
+    }
 }

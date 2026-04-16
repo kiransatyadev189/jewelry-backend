@@ -105,4 +105,17 @@ public class OrderService {
 
         return updatedOrder;
     }
+
+    public Order trackOrder(Long id, String email) {
+        if (id == null) {
+            throw new RuntimeException("Order ID is required");
+        }
+
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("Email is required");
+        }
+
+        return orderRepository.findByIdAndEmail(id, email.trim())
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+    }
 }
