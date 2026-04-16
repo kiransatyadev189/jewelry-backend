@@ -34,6 +34,79 @@ public class EmailService {
         sendStyledEmail(order, subject, heading, message);
     }
 
+    public void sendPasswordResetEmail(String toEmail, String resetLink) {
+        System.out.println("sendPasswordResetEmail() triggered for: " + toEmail);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("Reset Your LuxeGlow Password");
+
+            String html = """
+                <div style="font-family:Arial, sans-serif; background:#f8f8f8; padding:30px;">
+                    <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
+
+                        <div style="background:#111111; color:#ffffff; padding:24px; text-align:center;">
+                            <h1 style="margin:0;">LuxeGlow Jewelry</h1>
+                            <p style="margin:8px 0 0; font-size:14px; color:#dddddd;">
+                                Password Reset Request
+                            </p>
+                        </div>
+
+                        <div style="padding:30px;">
+                            <p style="font-size:16px;">Hello,</p>
+
+                            <p style="font-size:15px; color:#444; line-height:1.7;">
+                                We received a request to reset your password.
+                            </p>
+
+                            <p style="font-size:15px; color:#444; line-height:1.7;">
+                                Click the button below to reset your password:
+                            </p>
+
+                            <div style="text-align:center; margin:30px 0;">
+                                <a href="%s"
+                                   style="background:#b76e79; color:white; padding:14px 24px;
+                                          text-decoration:none; border-radius:8px; font-weight:600; display:inline-block;">
+                                    Reset Password
+                                </a>
+                            </div>
+
+                            <p style="font-size:14px; color:#777;">
+                                This link will expire in 15 minutes.
+                            </p>
+
+                            <p style="font-size:14px; color:#777; word-break:break-all;">
+                                If the button does not work, copy and paste this link into your browser:<br>
+                                <a href="%s" style="color:#b76e79;">%s</a>
+                            </p>
+
+                            <p style="font-size:14px; color:#777;">
+                                If you didn’t request this, you can safely ignore this email.
+                            </p>
+
+                            <p style="margin-top:24px;">
+                                Thanks,<br>
+                                <strong>LuxeGlow Jewelry</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            """.formatted(resetLink, resetLink, resetLink);
+
+            helper.setText(html, true);
+            mailSender.send(message);
+
+            System.out.println("Password reset email sent to: " + toEmail);
+
+        } catch (Exception e) {
+            System.out.println("Error sending reset email: " + e.getMessage());
+            throw new RuntimeException("Failed to send reset email", e);
+        }
+    }
+
     private String buildStatusMessage(String status) {
         if (status == null) {
             return "Your order status has been updated.";
@@ -98,7 +171,7 @@ public class EmailService {
             String html = """
                 <div style="font-family:Arial, sans-serif; background:#f8f8f8; padding:30px;">
                     <div style="max-width:700px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
-                        
+
                         <div style="background:#111111; color:#ffffff; padding:24px; text-align:center;">
                             <h1 style="margin:0; font-size:28px;">LuxeGlow Jewelry</h1>
                             <p style="margin:8px 0 0; font-size:14px; color:#dddddd;">%s</p>
