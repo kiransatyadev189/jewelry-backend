@@ -9,6 +9,8 @@ import com.luxeglow.jewelrybackend.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = {
@@ -45,7 +47,6 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Email is required");
         }
@@ -58,9 +59,14 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<?> validateResetToken(@RequestParam String token) {
+        boolean valid = authService.validateResetToken(token);
+        return ResponseEntity.ok(Map.of("valid", valid));
+    }
+
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
-
         if (request.getToken() == null || request.getToken().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Token is required");
         }
