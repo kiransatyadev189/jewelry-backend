@@ -7,6 +7,7 @@ import com.luxeglow.jewelrybackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -35,6 +36,7 @@ public class PasswordResetService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public void forgotPassword(String email) {
         if (email == null || email.trim().isEmpty()) {
             return;
@@ -44,7 +46,6 @@ public class PasswordResetService {
 
         Optional<User> optionalUser = userRepository.findByEmail(cleanedEmail);
 
-        // Do not reveal whether email exists
         if (optionalUser.isEmpty()) {
             return;
         }
@@ -76,6 +77,7 @@ public class PasswordResetService {
         return resetToken.getExpiryDate().isAfter(LocalDateTime.now());
     }
 
+    @Transactional
     public void resetPassword(String token, String newPassword) {
         if (token == null || token.trim().isEmpty()) {
             throw new RuntimeException("Invalid token");
