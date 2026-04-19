@@ -40,7 +40,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String role = jwtUtil.extractRole(token);
 
                 if (role != null && !role.isBlank()) {
-                    String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                    String normalizedRole = role.trim().toUpperCase();
+                    String authority = normalizedRole.startsWith("ROLE_")
+                            ? normalizedRole
+                            : "ROLE_" + normalizedRole;
 
                     UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(
