@@ -44,14 +44,16 @@ public class OrderService {
         order.setStatus("Pending");
 
         if (request.getItems() != null) {
-            for (OrderItemRequest itemRequest : request.getItems()) {
-                OrderItem item = new OrderItem();
-                item.setProductName(itemRequest.getProductName());
-                item.setQuantity(itemRequest.getQuantity());
-                item.setPrice(itemRequest.getPrice());
-                item.setOrder(order);
-                order.getItems().add(item);
-            }
+           for (OrderItemRequest itemRequest : request.getItems()) {
+           OrderItem item = new OrderItem();
+         item.setProductId(itemRequest.getProductId());
+          item.setProductName(itemRequest.getProductName());
+    item.setQuantity(itemRequest.getQuantity());
+    item.setPrice(itemRequest.getPrice());
+    item.setImageUrl(itemRequest.getImageUrl());
+    item.setOrder(order);
+    order.getItems().add(item);
+}
         }
 
         Order savedOrder = orderRepository.save(order);
@@ -117,5 +119,49 @@ public class OrderService {
 
         return orderRepository.findByIdAndEmail(id, email.trim())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+    }
+
+    public List<Order> getOrdersByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("Email is required");
+        }
+
+        return orderRepository.findByEmailOrderByOrderDateDesc(email.trim());
+    }
+
+    public Order cancelOrder(Long id, String email) {
+        if (id == null) {
+            throw new RuntimeException("Order ID is required");
+        }
+
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("Email is required");
+        }
+
+        Order order = orderRepository.findByIdAndEmail(id, email.trim())
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        String currentStatus = order.getStatus() == null ? "" : order.getStatus().trim();
+
+        if (currentStatus.equalsIgnoreCase("Shipped")
+                || currentStatus.equalsIgnoreCase("Out for Delivery")
+                || currentStatus.equalsIgnoreCase("Delivered")
+                || currentStatus.equalsIgnoreCase("Cancelled")) {
+            throw new RuntimeException("This order cannot be cancelled now");
+        }
+
+        order.setStatus("Cancelled");
+
+        Order cancelledOrder = orderRepository.save(order);
+
+        try {
+            emailService.sendOrderStatusUpdate(cancelledOrder);
+            System.out.println("Cancellation email sent to: " + cancelledOrder.getEmail());
+        } catch (Exception e) {
+            System.out.println("Failed to send cancellation email: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return cancelledOrder;
     }
 }

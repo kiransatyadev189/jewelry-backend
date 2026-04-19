@@ -6,6 +6,7 @@ public class OrderItemRequest {
     private String productName;
     private Double price;
     private Integer quantity;
+    private String imageUrl;
 
     public OrderItemRequest() {
     }
@@ -40,5 +41,13 @@ public class OrderItemRequest {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

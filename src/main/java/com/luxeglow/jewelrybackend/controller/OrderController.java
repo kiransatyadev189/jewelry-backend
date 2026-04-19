@@ -3,6 +3,7 @@ package com.luxeglow.jewelrybackend.controller;
 import com.luxeglow.jewelrybackend.dto.OrderRequest;
 import com.luxeglow.jewelrybackend.entity.Order;
 import com.luxeglow.jewelrybackend.service.OrderService;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,5 +47,17 @@ public class OrderController {
     @GetMapping("/track")
     public Order trackOrder(@RequestParam Long id, @RequestParam String email) {
         return orderService.trackOrder(id, email);
+    }
+
+    @GetMapping("/my")
+    public List<Order> getMyOrders(Authentication authentication) {
+        String email = authentication.getName();
+        return orderService.getOrdersByEmail(email);
+    }
+
+    @PutMapping("/{id}/cancel")
+    public Order cancelMyOrder(@PathVariable Long id, Authentication authentication) {
+        String email = authentication.getName();
+        return orderService.cancelOrder(id, email);
     }
 }

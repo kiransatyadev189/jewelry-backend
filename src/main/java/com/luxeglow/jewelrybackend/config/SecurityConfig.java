@@ -37,10 +37,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/login").permitAll()
 
-                        // public product + order endpoints
+                        // public product + public order endpoints
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/orders/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/orders/track").permitAll()
+
+                        // user-only endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/orders/my").hasRole("USER")
+                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/cancel").hasRole("USER")
+                        .requestMatchers("/api/user/**").hasRole("USER")
 
                         // admin-only endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -49,9 +54,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/orders").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/orders/*/status").hasRole("ADMIN")
-
-                        // user-only endpoints
-                        .requestMatchers("/api/user/**").hasRole("USER")
 
                         .anyRequest().permitAll()
                 )
@@ -70,10 +72,10 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://fashion-jewelry-store-frontend.vercel.app"
-         ));
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "https://fashion-jewelry-store-frontend.vercel.app"
+        ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

@@ -16,9 +16,12 @@ public class OrderItem {
     private Double price;
     private Integer quantity;
 
+    @Column(length = 1000)
+    private String imageUrl;
+
     @ManyToOne
     @JoinColumn(name = "order_id")
-    @JsonIgnore   // 🔥 THIS LINE FIXES EVERYTHING
+    @JsonIgnore
     private Order order;
 
     public OrderItem() {
@@ -58,6 +61,14 @@ public class OrderItem {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public Order getOrder() {
