@@ -32,6 +32,8 @@ public class OrderService {
         this.emailService = emailService;
     }
 
+    // Existing normal order placement
+    // Keep this for now if you still need it anywhere in the project
     public Order placeOrder(OrderRequest request) {
         System.out.println("placeOrder() started");
 
@@ -43,21 +45,72 @@ public class OrderService {
         order.setOrderDate(LocalDateTime.now());
         order.setStatus("Pending");
 
+        // Payment-related defaults
+        order.setPaymentStatus("PENDING");
+        order.setPaymentMethod("COD");
+        order.setRazorpayOrderId(null);
+        order.setRazorpayPaymentId(null);
+
         if (request.getItems() != null) {
-           for (OrderItemRequest itemRequest : request.getItems()) {
-           OrderItem item = new OrderItem();
-         item.setProductId(itemRequest.getProductId());
-          item.setProductName(itemRequest.getProductName());
-    item.setQuantity(itemRequest.getQuantity());
-    item.setPrice(itemRequest.getPrice());
-    item.setImageUrl(itemRequest.getImageUrl());
-    item.setOrder(order);
-    order.getItems().add(item);
-}
+            for (OrderItemRequest itemRequest : request.getItems()) {
+                OrderItem item = new OrderItem();
+                item.setProductId(itemRequest.getProductId());
+                item.setProductName(itemRequest.getProductName());
+                item.setQuantity(itemRequest.getQuantity());
+                item.setPrice(itemRequest.getPrice());
+                item.setImageUrl(itemRequest.getImageUrl());
+                item.setOrder(order);
+                order.getItems().add(item);
+            }
         }
 
         Order savedOrder = orderRepository.save(order);
         System.out.println("Order saved with id: " + savedOrder.getId());
+
+        try {
+            emailService.sendOrderConfirmation(savedOrder);
+            System.out.println("Order confirmation email sent to: " + savedOrder.getEmail());
+        } catch (Exception e) {
+            System.out.println("Failed to send confirmation email: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return savedOrder;
+    }
+
+    // New secure method for paid Razorpay orders
+    public Order placePaidOrder(OrderRequest request, String razorpayOrderId, String razorpayPaymentId) {
+        System.out.println("placePaidOrder() started");
+
+        Order order = new Order();
+        order.setCustomerName(request.getCustomerName());
+        order.setEmail(request.getEmail());
+        order.setAddress(request.getAddress());
+        order.setTotalAmount(request.getTotalAmount());
+        order.setOrderDate(LocalDateTime.now());
+
+        // Payment successful, so order is confirmed
+        order.setStatus("Confirmed");
+        order.setPaymentStatus("PAID");
+        order.setPaymentMethod("RAZORPAY");
+        order.setRazorpayOrderId(razorpayOrderId);
+        order.setRazorpayPaymentId(razorpayPaymentId);
+
+        if (request.getItems() != null) {
+            for (OrderItemRequest itemRequest : request.getItems()) {
+                OrderItem item = new OrderItem();
+                item.setProductId(itemRequest.getProductId());
+                item.setProductName(itemRequest.getProductName());
+                item.setQuantity(itemRequest.getQuantity());
+                item.setPrice(itemRequest.getPrice());
+                item.setImageUrl(itemRequest.getImageUrl());
+                item.setOrder(order);
+                order.getItems().add(item);
+            }
+        }
+
+        Order savedOrder = orderRepository.save(order);
+        System.out.println("Paid order saved with id: " + savedOrder.getId());
 
         try {
             emailService.sendOrderConfirmation(savedOrder);

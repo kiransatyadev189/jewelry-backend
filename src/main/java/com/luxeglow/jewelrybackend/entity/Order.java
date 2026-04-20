@@ -19,71 +19,52 @@ public class Order {
     private String address;
     private Double totalAmount;
     private LocalDateTime orderDate;
-    private String status;
+
+    private String status; // Pending, Paid, Cancelled, etc.
+
+    // 🔐 PAYMENT FIELDS (NEW)
+    private String paymentStatus; // CREATED, PAID, FAILED
+    private String paymentMethod; // Razorpay
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
-    public Order() {
-    }
+    public Order() {}
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
 
-    public String getCustomerName() {
-        return customerName;
-    }
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public Double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
 
-    public String getAddress() {
-        return address;
-    }
+    public LocalDateTime getOrderDate() { return orderDate; }
+    public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public Double getTotalAmount() {
-        return totalAmount;
-    }
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
 
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
+    public String getRazorpayOrderId() { return razorpayOrderId; }
+    public void setRazorpayOrderId(String razorpayOrderId) { this.razorpayOrderId = razorpayOrderId; }
 
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
-    }
+    public String getRazorpayPaymentId() { return razorpayPaymentId; }
+    public void setRazorpayPaymentId(String razorpayPaymentId) { this.razorpayPaymentId = razorpayPaymentId; }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public List<OrderItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<OrderItem> items) {
-        this.items = items;
-    }
+    public List<OrderItem> getItems() { return items; }
+    public void setItems(List<OrderItem> items) { this.items = items; }
 }

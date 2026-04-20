@@ -37,10 +37,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/login").permitAll()
 
-                        // public product + public order endpoints
+                        // public product + tracking endpoints
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/orders/track").permitAll()
+
+                        // payment endpoints
+                        .requestMatchers("/api/payments/**").permitAll()
+                        .requestMatchers("/api/webhooks/razorpay").permitAll()
+
+                        // public order placement if still needed separately
+                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
 
                         // user-only endpoints
                         .requestMatchers(HttpMethod.GET, "/api/orders/my").hasRole("USER")
