@@ -44,6 +44,7 @@ public class PaymentService {
         JSONObject orderRequest = new JSONObject();
         orderRequest.put("amount", serverAmountPaise);
         orderRequest.put("currency", "INR");
+        orderRequest.put("payment_capture", 1);
         orderRequest.put("receipt", "lg_" + System.currentTimeMillis());
 
         JSONObject notes = new JSONObject();
