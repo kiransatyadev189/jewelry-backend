@@ -20,10 +20,10 @@ import java.util.List;
 public class PaymentService {
 
     @Value("${razorpay.key.id}")
-private String razorpayKeyId;
+    private String razorpayKeyId;
 
-@Value("${razorpay.key.secret}")
-private String razorpayKeySecret;
+    @Value("${razorpay.key.secret}")
+    private String razorpayKeySecret;
 
     private final OrderService orderService;
 
@@ -76,7 +76,6 @@ private String razorpayKeySecret;
             throw new RuntimeException("Payment signature verification failed");
         }
 
-        // Recalculate on server for security
         int serverAmountPaise = calculateAmountPaise(request.getItems());
         double serverAmountRupees = serverAmountPaise / 100.0;
 
@@ -87,7 +86,6 @@ private String razorpayKeySecret;
         orderRequest.setTotalAmount(serverAmountRupees);
         orderRequest.setItems(request.getItems());
 
-        // Save as paid Razorpay order
         return orderService.placePaidOrder(
                 orderRequest,
                 request.getRazorpayOrderId(),
