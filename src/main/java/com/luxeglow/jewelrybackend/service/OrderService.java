@@ -148,7 +148,9 @@ public class OrderService {
         if (expectedDeliveryDate != null && !expectedDeliveryDate.isBlank()) {
             order.setExpectedDeliveryDate(LocalDate.parse(expectedDeliveryDate));
         } else if ("Delivered".equalsIgnoreCase(normalizedStatus)) {
-            order.setExpectedDeliveryDate(LocalDate.now());
+            if (order.getExpectedDeliveryDate() == null) {
+                order.setExpectedDeliveryDate(LocalDate.now());
+            }
         }
 
         Order updatedOrder = orderRepository.save(order);
