@@ -7,6 +7,7 @@ import com.luxeglow.jewelrybackend.entity.OrderItem;
 import com.luxeglow.jewelrybackend.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,8 +33,6 @@ public class OrderService {
         this.emailService = emailService;
     }
 
-    // Existing normal order placement
-    // Keep this for now if you still need it anywhere in the project
     public Order placeOrder(OrderRequest request) {
         System.out.println("placeOrder() started");
 
@@ -44,8 +43,8 @@ public class OrderService {
         order.setTotalAmount(request.getTotalAmount());
         order.setOrderDate(LocalDateTime.now());
         order.setStatus("Pending");
+        order.setExpectedDeliveryDate(null);
 
-        // Payment-related defaults
         order.setPaymentStatus("PENDING");
         order.setPaymentMethod("COD");
         order.setRazorpayOrderId(null);
@@ -78,7 +77,6 @@ public class OrderService {
         return savedOrder;
     }
 
-    // New secure method for paid Razorpay orders
     public Order placePaidOrder(OrderRequest request, String razorpayOrderId, String razorpayPaymentId) {
         System.out.println("placePaidOrder() started");
 
@@ -89,8 +87,8 @@ public class OrderService {
         order.setTotalAmount(request.getTotalAmount());
         order.setOrderDate(LocalDateTime.now());
 
-        // Payment successful, so order is confirmed
         order.setStatus("Confirmed");
+        order.setExpectedDeliveryDate(null);
         order.setPaymentStatus("PAID");
         order.setPaymentMethod("RAZORPAY");
         order.setRazorpayOrderId(razorpayOrderId);
@@ -127,7 +125,7 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
-    public Order updateOrderStatus(Long id, String status) {
+    public Order updateOrderStatus(Long id, String status, String expectedDeliveryDate) {
         Optional<Order> optionalOrder = orderRepository.findById(id);
 
         if (optionalOrder.isEmpty()) {
@@ -146,6 +144,12 @@ public class OrderService {
 
         Order order = optionalOrder.get();
         order.setStatus(normalizedStatus);
+
+        if (expectedDeliveryDate != null && !expectedDeliveryDate.isBlank()) {
+            order.setExpectedDeliveryDate(LocalDate.parse(expectedDeliveryDate));
+        } else if ("Delivered".equalsIgnoreCase(normalizedStatus)) {
+            order.setExpectedDeliveryDate(LocalDate.now());
+        }
 
         Order updatedOrder = orderRepository.save(order);
         System.out.println("Order status updated for id: " + updatedOrder.getId() + " to " + updatedOrder.getStatus());

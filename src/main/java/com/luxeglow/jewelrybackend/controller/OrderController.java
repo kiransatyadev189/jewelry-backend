@@ -36,12 +36,13 @@ public class OrderController {
     @PutMapping("/{id}/status")
     public Order updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String status = body.get("status");
+        String expectedDeliveryDate = body.get("expectedDeliveryDate");
 
         if (status == null || status.isBlank()) {
             throw new RuntimeException("Status is required");
         }
 
-        return orderService.updateOrderStatus(id, status);
+        return orderService.updateOrderStatus(id, status, expectedDeliveryDate);
     }
 
     @GetMapping("/track")
